@@ -71,3 +71,11 @@ func write(cfg Config) error {
 	return nil
 }
 
+func (c *Config) SetUrl(db_url string) error {
+	c.Db_url = db_url
+	err := write(*c)
+	if err != nil {
+		return fmt.Errorf("can't set URL error: %v", err)
+	}
+	return nil
+}
