@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Bakr101/gator/internal/config"
 	"github.com/Bakr101/gator/internal/database"
+	"github.com/Bakr101/gator/internal/fetch"
 	_ "github.com/lib/pq"
 )
 
@@ -14,6 +16,7 @@ import (
 
 func main(){
 	const db_URL = "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable"
+	
 	//Read gator configuration
 	gatorConfig, err := config.Read()
 	if err != nil{
@@ -33,9 +36,12 @@ func main(){
 		fmt.Printf("error connecting to DB, err: %v", errorr)
 	}
 	dbQueries := database.New(db)
+	gatorClient := fetch.NewClient(10 * time.Second)
+	//initialize state struct
 	configState := state{
 		db:  dbQueries,
 		cfg: &gatorConfig,
+		Client: &gatorClient,
 	}
 	
 
@@ -48,10 +54,12 @@ func main(){
 	register := commandRegister()
 	reset := commandReset()
 	users := commandUsers()
+	aggregate := commandAgg()
 	commands.register(login.name, handlerLogin)
 	commands.register(register.name, handlerRegister)
 	commands.register(reset.name, handlerReset)
 	commands.register(users.name, handlerUsers)
+	commands.register(aggregate.name, handlerAgg)
 
 	//Get agruments from Cli & splitting them 
 	fullArgs := os.Args
@@ -108,6 +116,19 @@ func main(){
 			os.Exit(1)
 		}
 		err := commands.run(&configState, users)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+	
+	if commandName == "agg"{	
+		if len(args) < 1{
+			fmt.Println("agg expects a url")
+			os.Exit(1)
+		}
+		aggregate.handler = append(aggregate.handler, args...)
+		err := commands.run(&configState, aggregate)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)

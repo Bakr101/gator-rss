@@ -5,11 +5,13 @@ import (
 
 	"github.com/Bakr101/gator/internal/config"
 	"github.com/Bakr101/gator/internal/database"
+	"github.com/Bakr101/gator/internal/fetch"
 )
 
 type state struct{
 	db	*database.Queries
 	cfg	*config.Config
+	Client *fetch.Client
 }
 
 type command struct{
