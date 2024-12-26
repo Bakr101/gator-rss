@@ -55,11 +55,15 @@ func main(){
 	reset := commandReset()
 	users := commandUsers()
 	aggregate := commandAgg()
+	addFeed := commandAddFeed()
+	feeds := commandFeeds()
 	commands.register(login.name, handlerLogin)
 	commands.register(register.name, handlerRegister)
 	commands.register(reset.name, handlerReset)
 	commands.register(users.name, handlerUsers)
 	commands.register(aggregate.name, handlerAgg)
+	commands.register(addFeed.name, handlerAddFeed)
+	commands.register(feeds.name, handlerFeeds)
 
 	//Get agruments from Cli & splitting them 
 	fullArgs := os.Args
@@ -129,6 +133,28 @@ func main(){
 		}
 		aggregate.handler = append(aggregate.handler, args...)
 		err := commands.run(&configState, aggregate)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	if commandName == "addfeed"{
+		if len(args) < 2{
+			fmt.Println("addFeed expects a name and a url")
+			os.Exit(1)
+		}
+		addFeed.handler = append(addFeed.handler, args...)
+		err := commands.run(&configState, addFeed)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+	
+	if commandName  == "feeds"{
+		
+		err := commands.run(&configState, feeds)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
