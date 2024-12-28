@@ -9,14 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.handler) < 2 {
 		return fmt.Errorf("the addFeed handler expects two arguments, the feed name and the feed url. argsLen: %v args:%v", len(cmd.handler), cmd.handler)
 	}
-	user, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
-	if err != nil {
-		return fmt.Errorf("user not registerd, please register first")
-	}
+	
 	newFeed := database.CreateFeedParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
@@ -29,7 +26,18 @@ func handlerAddFeed(s *state, cmd command) error {
 	if err != nil {
 		return fmt.Errorf("error creating feed in s.db.CreateFeed func, err: %v", err)
 	}
-	fmt.Printf("New Feed created: %v\n", userFeed)
+	feedFollowParams := database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		FeedID: userFeed.ID,
+		UserID: user.ID,
+	}
+	_, err = s.db.CreateFeedFollow(context.Background(), feedFollowParams)
+	if err != nil {
+		return fmt.Errorf("error creating feed follow in s.db.CreateFeedFollow func, err: %v", err)
+	}
+	fmt.Printf("New Feed created & followed: %v\n", userFeed)
 	
 	return nil
 }

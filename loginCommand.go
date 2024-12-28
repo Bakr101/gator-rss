@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/Bakr101/gator/internal/database"
 )
 
 func handlerLogin(s *state, cmd command) error {
@@ -27,5 +29,16 @@ func commandLogin() command{
 	return command{
 		name: "login",
 		handler: []string{},
+	}
+}
+
+//logged in middleware
+func middlewareLoggedIn(handler func(s* state, cmd command, user database.User) error) func(*state, command) error {
+	return func(s *state, cmd command) error {
+		user, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
+		if err != nil {
+			return err
+		}
+		return handler(s, cmd, user)
 	}
 }

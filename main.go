@@ -49,6 +49,9 @@ func main(){
 	commands := commands{
 		handlers: make(map[string]func(*state, command) error),
 	}
+
+	
+	
 	//Registering commands
 	login := commandLogin()
 	register := commandRegister()
@@ -57,13 +60,17 @@ func main(){
 	aggregate := commandAgg()
 	addFeed := commandAddFeed()
 	feeds := commandFeeds()
+	follow := commandFollow()
+	following := commandFollowing()
 	commands.register(login.name, handlerLogin)
 	commands.register(register.name, handlerRegister)
 	commands.register(reset.name, handlerReset)
 	commands.register(users.name, handlerUsers)
 	commands.register(aggregate.name, handlerAgg)
-	commands.register(addFeed.name, handlerAddFeed)
+	commands.register(addFeed.name, middlewareLoggedIn(handlerAddFeed))
 	commands.register(feeds.name, handlerFeeds)
+	commands.register(follow.name, middlewareLoggedIn(handlerFollow))
+	commands.register(following.name, middlewareLoggedIn(handlerFollowing))
 
 	//Get agruments from Cli & splitting them 
 	fullArgs := os.Args
@@ -155,6 +162,30 @@ func main(){
 	if commandName  == "feeds"{
 		
 		err := commands.run(&configState, feeds)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	if commandName == "follow"{
+		if len(args) < 1{
+			fmt.Println("follow expects a url")
+			os.Exit(1)
+		}
+		follow.handler = append(follow.handler, args...)
+		err := commands.run(&configState, follow)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+	if commandName == "following"{
+		if len(args) > 0{
+			fmt.Println("following expects no arguments")
+			os.Exit(1)
+		}
+		err := commands.run(&configState, following)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
