@@ -20,7 +20,7 @@ func handlerAgg(s *state, cmd command) error {
 	for range ticker.C {
 
 	scrapeFeeds(s)
-
+	
 	}
 	
 	return nil 
