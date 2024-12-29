@@ -62,6 +62,8 @@ func main(){
 	feeds := commandFeeds()
 	follow := commandFollow()
 	following := commandFollowing()
+	unfollow := commandUnfollow()
+	browse := commandBrowse()
 	commands.register(login.name, handlerLogin)
 	commands.register(register.name, handlerRegister)
 	commands.register(reset.name, handlerReset)
@@ -71,6 +73,8 @@ func main(){
 	commands.register(feeds.name, handlerFeeds)
 	commands.register(follow.name, middlewareLoggedIn(handlerFollow))
 	commands.register(following.name, middlewareLoggedIn(handlerFollowing))
+	commands.register(unfollow.name, middlewareLoggedIn(handlerUnfollow))
+	commands.register(browse.name, middlewareLoggedIn(handlerBrowse))
 
 	//Get agruments from Cli & splitting them 
 	fullArgs := os.Args
@@ -186,6 +190,28 @@ func main(){
 			os.Exit(1)
 		}
 		err := commands.run(&configState, following)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	if commandName == "unfollow"{
+		if len(args) < 1{
+			fmt.Println("unfollow expects a url")
+			os.Exit(1)
+		}
+		unfollow.handler = append(unfollow.handler, args...)
+		err := commands.run(&configState, unfollow)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	if commandName == "browse"{
+		browse.handler = append(browse.handler, args...)
+		err := commands.run(&configState, browse)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)

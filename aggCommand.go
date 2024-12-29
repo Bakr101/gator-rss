@@ -1,29 +1,28 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"html"
+	"time"
 )
 
 func handlerAgg(s *state, cmd command) error {
 	if len(cmd.handler) == 0 {
-		return fmt.Errorf("the aggregator command expects a single argument, the url. argsLen: %v args:%v", len(cmd.handler), cmd.handler)
+		return fmt.Errorf("the aggregator command expects a single argument, the time between requests. argsLen: %v args:%v", len(cmd.handler), cmd.handler)
 	}
 	
-	feed, err := s.Client.FetchFeed(context.Background(), cmd.handler[0])
+	timeBetweenReqs, err := time.ParseDuration(cmd.handler[0])
 	if err != nil {
-		fmt.Println(err)
+		return fmt.Errorf("incorrect duration: %v", err)
 	}
-	html.UnescapeString(feed.Channel.Title)
-	html.UnescapeString(feed.Channel.Description)
+
+	fmt.Printf("Collecting feeds every: %v\n", timeBetweenReqs)
+	ticker := time.NewTicker(timeBetweenReqs)
+	for range ticker.C {
+
+	scrapeFeeds(s)
+
+	}
 	
-	for idx:= range feed.Channel.Item{
-		feed.Channel.Item[idx].Title = html.UnescapeString(feed.Channel.Item[idx].Title)
-		feed.Channel.Item[idx].Description = html.UnescapeString(feed.Channel.Item[idx].Description)
-		
-	}
-	fmt.Println(feed)
 	return nil 
 }
 
